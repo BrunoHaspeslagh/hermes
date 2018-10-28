@@ -4,9 +4,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var lessMiddleware = require('less-middleware');
 var logger = require('morgan');
+var fs = require('fs');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+
+var apiFolder = './api';
+var routesFolder = './routes';
 
 var app = express();
 
@@ -22,7 +25,21 @@ app.use(lessMiddleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
+fs.readdirSync(routesFolder).forEach((file)=> {
+  var name = file.split('.')[0];
+  if(name != 'index'){
+    var router = require('./routes/' + name);
+    app.use('/' + name, router);
+  }
+
+});
+
+fs.readdirSync(apiFolder).forEach((file)=>{
+  var name = file.split('.')[0];
+  var router = require('./api/' + name);
+  app.use('/api/' + name, router);
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
